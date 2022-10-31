@@ -1,7 +1,7 @@
 name = "GNeuralNetworks"
 uuid = "55fbfc93-21fc-4df2-8542-bca13fc186e5"
 authors = ["MqCreaple"]
-version = "0.1.0"
+version = "0.1.1"
 
 [compat]
 julia = "1"
