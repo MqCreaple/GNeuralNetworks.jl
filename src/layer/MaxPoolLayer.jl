@@ -21,13 +21,12 @@ end
 size(layer::MaxPoolLayer) = (layer.inputSize => size(layer.lastMax))
 
 function predict(layer::MaxPoolLayer, data::Array{Float64, 3})
-    sz = size(layer.lastMax)
-    @inbounds for l in 1:sz[3]
-        for j in 1:sz[2]
-            for i in 1:sz[1]
+    for l in axes(layer.lastMax, 3)
+        for j in axes(layer.lastMax, 2)
+            for i in axes(layer.lastMax, 1)
                 xBound = ((i-1) * layer.windowSize[1] + 1) : min(i * layer.windowSize[1], layer.inputSize[1])
                 yBound = ((j-1) * layer.windowSize[2] + 1) : min(j * layer.windowSize[2], layer.inputSize[2])
-                layer.lastMax[i, j, l], layer.lastMaxIndex[i, j, l] = findmax(view(data, xBound, yBound, l))
+                @inbounds layer.lastMax[i, j, l], layer.lastMaxIndex[i, j, l] = findmax(view(data, xBound, yBound, l))
             end
         end
     end
@@ -36,13 +35,12 @@ end
 
 function diff(layer::MaxPoolLayer, outputDiff::Array{Float64, 3})
     ans = zeros(layer.inputSize)
-    sz = size(layer.lastMax)
-    @inbounds for l in 1:sz[3]
-        for j in 1:sz[2]
-            for i in 1:sz[1]
+    for l in axes(layer.lastMax, 3)
+        for j in axes(layer.lastMax, 2)
+            for i in axes(layer.lastMax, 1)
                 xInd = (i-1) * layer.windowSize[1] + layer.lastMaxIndex[i, j, l][1]
                 yInd = (j-1) * layer.windowSize[2] + layer.lastMaxIndex[i, j, l][2]
-                ans[xInd, yInd, l] = outputDiff[i, j, l] * layer.activation.f_.(layer.lastMax[i, j, l])
+                @inbounds ans[xInd, yInd, l] = outputDiff[i, j, l] * layer.activation.f_.(layer.lastMax[i, j, l])
             end
         end
     end

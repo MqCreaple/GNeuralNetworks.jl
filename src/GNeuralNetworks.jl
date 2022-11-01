@@ -9,13 +9,14 @@ import Base:/
 
 export onehot
 export FunctionAndDerivative
-export sigmoid, reLU, mae, crossEntropy
-export AbstractLayer, ResizeLayer, flatten, DenseLayer, ConvLayer, MaxPoolLayer
+export sigmoid, reLU, mae, cross_entropy
+export AbstractLayer, IdentityLayer, ResizeLayer, FlattenLayer, DenseLayer, ConvLayer, MaxPoolLayer
 export size, predict, diff, update!
-export Model
+export Chain, Concat
 
+include("utils.jl")
 include("function.jl")
-include("layer/layer.jl")
-include("Model.jl")
+include("layer/Layer.jl")
+include("connection/Connection.jl")
 
 end

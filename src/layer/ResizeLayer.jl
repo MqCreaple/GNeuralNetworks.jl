@@ -12,6 +12,8 @@ struct ResizeLayer <: AbstractLayer
     end
 end
 
+ResizeLayer(size::Pair{Tuple{Vararg{Int}}, Tuple{Vararg{Int}}}) = ResizeLayer(size.first, size.second)
+
 "dimension of resize layer"
 size(layer::ResizeLayer) = (layer.inputSize => layer.outputSize)
 
@@ -25,5 +27,12 @@ end
 
 function update!(layer::ResizeLayer, data) end
 
-"a special kind of resize layer"
-flatten(inputSize::Tuple{Vararg{Int}}) = ResizeLayer(inputSize, (prod(inputSize),))
+"""
+    FlattenLayer(inputSize)
+
+Flatten layer. A special kind of resize layer.
+
+The layer accepts an arbitrary sized array and flattens it into a vector (1-dimensional array).
+"""
+FlattenLayer(inputSize::Tuple{Vararg{Int}}) = ResizeLayer(inputSize, (prod(inputSize),))
+FlattenLayer(args::Int...) = ResizeLayer(Tuple(args), (prod(args),))

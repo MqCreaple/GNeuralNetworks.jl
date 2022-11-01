@@ -25,13 +25,15 @@ mutable struct DenseLayer <: AbstractLayer
     lastInput::Vector{Float64}
     lastOutputBefore::Vector{Float64}
     # constructor
-    DenseLayer(pair::Pair{Int, Int}; activation::FunctionAndDerivative=sigmoid) = new(
-        DenseLayerData(randn(pair.second, pair.first), randn(pair.second)),
+    DenseLayer(inLen::Int, outLen::Int; activation::FunctionAndDerivative=sigmoid) = new(
+        DenseLayerData(randn(outLen, inLen), randn(outLen)),
         activation,
-        zeros(pair.first),
-        zeros(pair.second)
+        zeros(inLen),
+        zeros(outLen)
     )
 end
+
+DenseLayer(pair::Pair{Int, Int}; kwargs...) = DenseLayer(pair.first, pair.second; kwargs...)
 
 "dimension of dense layer"
 function size(layer::DenseLayer)

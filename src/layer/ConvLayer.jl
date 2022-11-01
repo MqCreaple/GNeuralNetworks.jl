@@ -41,13 +41,13 @@ function predict(layer::ConvLayer, data::Array{Float64, 3})
     layer.lastInput = data
     sz = size(layer)
     ans = zeros(sz.second)
-    @inbounds for l in 1:sz.second[3]
+    for l in 1:sz.second[3]
         for j in 1:sz.second[2]
             for i in 1:sz.second[1]
                 # calculate convolution on answer's pixel (i, j) and channel l
                 xInd = i:i+size(layer.data.core)[1]-1
                 yInd = j:j+size(layer.data.core)[2]-1
-                ans[i, j, l] = sum(view(layer.data.core, :, :, :, l) .* view(data, xInd, yInd, :))
+                @inbounds ans[i, j, l] = sum(view(layer.data.core, :, :, :, l) .* view(data, xInd, yInd, :))
             end
         end
     end
@@ -58,21 +58,21 @@ function diff(layer::ConvLayer, outputDiff::Array{Float64, 3})
     coreDiff = zeros(size(layer.data.core))
     inputDiff = zeros(size(layer).first)
     # partial derivatives wrt. convolution core
-    @inbounds for m in 1:size(coreDiff)[4]
-        for l in 1:size(coreDiff)[3]
-            for j in 1:size(coreDiff)[2]
-                for i in 1:size(coreDiff)[1]
+    for m in axes(coreDiff, 4)
+        for l in axes(coreDiff, 3)
+            for j in axes(coreDiff, 2)
+                for i in axes(coreDiff, 1)
                     xInd = i:i+size(outputDiff)[1]-1
                     yInd = j:j+size(outputDiff)[2]-1
-                    coreDiff[i, j, l, m] = sum(view(outputDiff, :, :, m) .* view(layer.lastInput, xInd, yInd, l))
+                    @inbounds coreDiff[i, j, l, m] = sum(view(outputDiff, :, :, m) .* view(layer.lastInput, xInd, yInd, l))
                 end
             end
         end
     end
     # partial derivatives wrt. input data
-    @inbounds for l in 1:size(inputDiff)[3]
-        for j in 1:size(inputDiff)[2]
-            for i in 1:size(inputDiff)[1]
+    for l in axes(inputDiff, 3)
+        for j in axes(inputDiff, 2)
+            for i in axes(inputDiff, 1)
                 xInd::UnitRange{Int} = i-size(layer.data.core)[1]+1:min(i, size(outputDiff)[1])
                 yInd::UnitRange{Int} = j-size(layer.data.core)[2]+1:min(j, size(outputDiff)[2])
                 cxInd::UnitRange{Int} = 1:length(xInd)
@@ -85,7 +85,7 @@ function diff(layer::ConvLayer, outputDiff::Array{Float64, 3})
                     cyInd = 2-yInd.start:length(yInd)
                     yInd = 1:j
                 end
-                inputDiff[i, j, l] = sum(
+                @inbounds inputDiff[i, j, l] = sum(
                     reverse(view(outputDiff, xInd, yInd, :), dims=(1, 2))
                     .* view(layer.data.core, cxInd, cyInd, l, :)
                 )
